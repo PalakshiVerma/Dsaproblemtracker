@@ -1,5 +1,5 @@
 [build]
-  command = "cd frontend && npm install && npm run build"
+  command = "npm install --prefix backend && cd frontend && npm install && npm run build"
   publish = "frontend/dist"
   functions = "backend"
 
@@ -10,3 +10,6 @@
 
 [functions]
   node_bundler = "esbuild"
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
