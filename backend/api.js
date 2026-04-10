@@ -10,32 +10,27 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // connect database
-connectDB();
+connectDB().catch(err => console.error("Initial DB connection failed:", err));
 
-// ✅ FIXED CORS (important)
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type"]
-}));
-
-// middleware
+app.use(cors());
 app.use(express.json());
 
+// Main router for all /api calls
+const apiRouter = express.Router();
+
 // health route
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+apiRouter.get("/health", (req, res) => {
+  res.json({ status: "ok", environment: "serverless" });
 });
 
 // problem routes
-app.use("/problems", require("./routes/problems"));
+apiRouter.use("/problems", require("./routes/problems"));
 
-// For local development
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+// Mount the router
+// On Netlify, requests are often prefixed or redirected. These mounts cover all cases.
+app.use("/.netlify/functions/api", apiRouter);
+app.use("/api", apiRouter);
+app.use("/", apiRouter); 
 
 module.exports = app;
 module.exports.handler = serverless(app);
